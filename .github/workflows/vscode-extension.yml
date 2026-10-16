@@ -1,14 +1,12 @@
 # Tests and packages the ASCII Ripples VS Code extension. The .vsix is attached to
-# the run as the "ascii-ripples-vsix" artifact; pushing an `ascii-ripples-<version>`
-# tag also publishes it as a GitHub release. (Not `v*`: that cuts an app release.)
+# the run as the "ascii-ripples-vsix" artifact. On main, a version in package.json
+# without a release yet becomes a GitHub release tagged `ascii-ripples-<version>`
+# (never `v*`, which cuts an app release).
 name: VS Code extension
 
 on:
   workflow_dispatch:
   push:
-    branches: ["**"]
-    tags: ["ascii-ripples-*"]
-    # Not evaluated for tag pushes.
     paths:
       - Integrations/vscode-ascii-ripples/**
       - .github/workflows/vscode-extension.yml
@@ -48,21 +46,30 @@ jobs:
           if-no-files-found: error
 
   release:
-    if: startsWith(github.ref, 'refs/tags/ascii-ripples-')
+    if: github.ref == 'refs/heads/main'
     needs: vsix
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v4
+
       - uses: actions/download-artifact@v4
         with:
           name: ascii-ripples-vsix
+          path: dist
 
-      - name: Publish release
+      - name: Release
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.ref_name }}
         run: |
-          gh release create "$TAG" *.vsix --repo "$GITHUB_REPOSITORY" \
-            --title "ASCII Ripples for VS Code ${TAG#ascii-ripples-}" \
+          set -euo pipefail
+          version=$(node -p 'require("./Integrations/vscode-ascii-ripples/package.json").version')
+          tag="ascii-ripples-$version"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "$tag is already released; raise the version in package.json to release again."
+            exit 0
+          fi
+          gh release create "$tag" dist/*.vsix --target "$GITHUB_SHA" \
+            --title "ASCII Ripples for VS Code $version" \
             --notes "VS Code extension: the ASCII Ripples wallpaper behind empty editors. Install: Extensions → … → Install from VSIX. / Расширение VS Code: обои ASCII Ripples за пустым редактором. Установка: Extensions → … → Install from VSIX."
