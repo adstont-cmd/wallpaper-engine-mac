@@ -55,7 +55,16 @@
             "light": { "type": "object", "properties": { "bg": { "type": "string" }, "text": { "type": "string" }, "wave": { "type": "string" } } }
           }
         },
-        "asciiRipples.advanced": { "type": "object", "default": {}, "order": 13, "markdownDescription": "%config.advanced%" }
+        "asciiRipples.trackpad.touch": { "type": "boolean", "default": true, "order": 20, "description": "%config.trackpad.touch%" },
+        "asciiRipples.trackpad.clickArea": {
+          "type": "string", "default": "anywhere", "order": 21,
+          "enum": ["anywhere", "anyEdge", "leftEdge", "rightEdge", "topEdge", "bottomEdge", "never"],
+          "enumDescriptions": ["%config.trackpad.clickArea.anywhere%", "%config.trackpad.clickArea.anyEdge%", "%config.trackpad.clickArea.leftEdge%", "%config.trackpad.clickArea.rightEdge%", "%config.trackpad.clickArea.topEdge%", "%config.trackpad.clickArea.bottomEdge%", "%config.trackpad.clickArea.never%"],
+          "description": "%config.trackpad.clickArea%"
+        },
+        "asciiRipples.trackpad.secondaryClick": { "type": "boolean", "default": false, "order": 22, "description": "%config.trackpad.secondaryClick%" },
+        "asciiRipples.trackpad.port": { "type": "number", "default": 47913, "minimum": 1024, "maximum": 65535, "order": 23, "description": "%config.trackpad.port%" },
+        "asciiRipples.advanced": { "type": "object", "default": {}, "order": 30, "markdownDescription": "%config.advanced%" }
       }
     }
   }

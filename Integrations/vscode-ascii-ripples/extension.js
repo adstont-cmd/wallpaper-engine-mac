@@ -4,6 +4,7 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const patcher = require("./patcher");
+const { TouchRelay, helperPath } = require("./touch");
 
 // Remembered so the uninstall hook (which runs without the `vscode` API) knows
 // which installations to restore.
@@ -35,8 +36,33 @@ function options() {
     opacity: c.get("opacity"),
     fps: c.get("fps"),
     showWatermark: c.get("showWatermark"),
+    trackpad: trackpadOptions(),
     cfg,
   };
+}
+
+function trackpadOptions() {
+  const c = vscode.workspace.getConfiguration("asciiRipples.trackpad");
+  return {
+    touch: c.get("touch"),
+    clickArea: c.get("clickArea"),
+    secondaryClick: c.get("secondaryClick"),
+    port: c.get("port"),
+  };
+}
+
+// The relay runs only while a trigger needs the fingers, and only on macOS,
+// where the helper exists.
+let relay = null;
+function syncRelay(context) {
+  const t = trackpadOptions();
+  const enabled = vscode.workspace.getConfiguration("asciiRipples").get("enabled");
+  const wanted = enabled && process.platform === "darwin" && (t.touch || t.clickArea !== "anywhere");
+  if (relay && (!wanted || relay.port !== t.port)) { relay.stop(); relay = null; }
+  if (wanted && !relay) {
+    relay = new TouchRelay({ port: t.port, helperPath: helperPath(context.extensionPath), log: m => console.log("[ascii-ripples]", m) });
+    relay.start();
+  }
 }
 
 async function sync(context, { announce }) {
@@ -94,9 +120,13 @@ function activate(context) {
     }),
     vscode.commands.registerCommand("asciiRipples.reinstall", () => sync(context, { announce: true })),
     vscode.workspace.onDidChangeConfiguration(e => {
-      if (e.affectsConfiguration("asciiRipples")) sync(context, { announce: false });
+      if (!e.affectsConfiguration("asciiRipples")) return;
+      syncRelay(context);
+      sync(context, { announce: false });
     }),
+    { dispose: () => { if (relay) relay.stop(); relay = null; } },
   );
+  syncRelay(context);
   // Also after a VS Code update, which replaces the patched page.
   sync(context, { announce: false });
 }

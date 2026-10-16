@@ -14,6 +14,13 @@ WallpaperMachine to be running.
   `asciiRipples.showWatermark: false` hides the logo.
 - Opening an editor in a group removes that group's layer at once; closing the
   last editor brings it back. Inactive empty groups are dimmed by VS Code as usual.
+- Trackpad triggers mirror the app's *Clicks on web wallpapers*
+  ([web wallpapers](web-wallpapers.md)): a finger landing on the trackpad sends a
+  wave where the pointer rests (`asciiRipples.trackpad.touch`, on by default),
+  primary clicks can be limited to an edge of the pad
+  (`asciiRipples.trackpad.clickArea`; a mouse click counts everywhere but
+  `never`), and a two-finger click can send a wave too
+  (`asciiRipples.trackpad.secondaryClick`). macOS only.
 - Themes: `time` (sun position, as on the desktop), `vscode` (follows the
   current color theme live), `auto`, `dark`, `light`.
 - Settings changes and first installation ask for a window reload.
@@ -34,6 +41,16 @@ WallpaperMachine to be running.
   groups; a class observer per group removes the layer when an editor opens.
   Frames are capped at `asciiRipples.fps` (30 by default) and stop while the
   window is hidden.
+- VS Code's window only receives clicks, so `bin/trackpad-helper` (built in CI
+  from `helper/trackpad-helper.swift`, universal, ad-hoc signed) reads the fingers
+  through MultitouchSupport the same way the app's `TrackpadContactMonitor` does
+  and prints one line per change (`d` first finger landed, `f` fingers moved, at
+  most 30 a second, `u` all lifted). `touch.js` runs it only while a trackpad
+  trigger needs it, and relays the lines over a WebSocket on
+  `127.0.0.1:asciiRipples.trackpad.port` (47913) that accepts only
+  `vscode-file://` origins; the first VS Code window to bind the port serves every
+  window, the others retry every 10 s. The layer connects (CSP allows `ws:`),
+  reconnects with backoff, and on `d` sends a wave if the pointer is over it.
 - Disabling, or the `vscode:uninstall` hook (`uninstall.js`, which reads the
   patched installations from `~/.ascii-ripples-vscode.json`), removes the tag and
   the script; the page and checksum return to their original bytes.

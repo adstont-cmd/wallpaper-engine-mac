@@ -7,7 +7,8 @@
 "use strict";
 const OPTIONS = /*@@OPTIONS@@*/{}/*@@END@@*/;
 if (window.__asciiRipples) return;
-window.__asciiRipples = true;
+// Also lets the tests and the devtools console see what the layers are doing.
+window.__asciiRipples = { waves: () => [...layers.values()].reduce((n, l) => n + l.waveCount(), 0) };
 
 // ---------------------------------------------------------------------------
 // Color themes (same as the desktop wallpaper), plus "vscode", which takes the
@@ -114,6 +115,27 @@ const colors = themeColors();
 CFG.bg = [...colors.bg]; CFG.text = [...colors.text]; CFG.wave = [...colors.wave];
 const fpsLimit = Math.max(0, Number(OPTIONS.fps) || 0);
 const layerOpacity = Math.min(1, Math.max(0, OPTIONS.opacity ?? 1));
+
+// ---------------------------------------------------------------------------
+// Trackpad triggers, the same choices as the desktop app's "Clicks on web
+// wallpapers". The page only sees clicks; the extension relays the fingers on
+// the trackpad from a native helper over a local WebSocket.
+// ---------------------------------------------------------------------------
+const TRACKPAD = Object.assign({ touch: false, clickArea: "anywhere", secondaryClick: false, port: 0 }, OPTIONS.trackpad || {});
+const EDGE = 0.2;
+let fingers = [];   // normalized, origin at the pad's bottom-left corner; empty for a mouse
+function onEdge([x, y], area) {
+  const left = x <= EDGE, right = x >= 1 - EDGE, bottom = y <= EDGE, top = y >= 1 - EDGE;
+  return { anyEdge: left || right || bottom || top, leftEdge: left, rightEdge: right,
+           topEdge: top, bottomEdge: bottom }[area] || false;
+}
+function countsPrimaryClick() {
+  const area = TRACKPAD.clickArea;
+  if (area === "never") return false;
+  if (area === "anywhere" || !fingers.length) return true;
+  return fingers.some(f => onEdge(f, area));
+}
+const parseFingers = s => (s || "").split(";").filter(Boolean).map(p => p.split(",").map(Number));
 
 // --- Perlin noise ---
 const P = new Uint8Array(512);
@@ -415,12 +437,15 @@ function createLayer(host) {
 
   // Input: the canvas ignores the mouse, so VS Code keeps every click
   // (double-click still opens a new file); the host just listens along.
+  const pointer = { x: 0, y: 0, inside: false };
   const local = e => { const r = host.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
-  const onMove = e => { const [px, py] = local(e); mouse.x = px / CELL_W; mouse.y = py / CELL_H; };
-  const onLeave = () => { mouse.x = mouse.y = -1e4; };
-  const onDown = e => {
-    if (!CFG.click || e.button !== 0) return;
-    const [px, py] = local(e);
+  const onMove = e => {
+    [pointer.x, pointer.y] = local(e); pointer.inside = true;
+    mouse.x = pointer.x / CELL_W; mouse.y = pointer.y / CELL_H;
+  };
+  const onLeave = () => { pointer.inside = false; mouse.x = mouse.y = -1e4; };
+  const wave = (px, py) => {
+    if (!CFG.click) return;
     waves.push({
       x: px / CELL_W, y: py / CELL_H, t0: performance.now() / 1000,
       seed: Math.random() * 100, heart: Math.random() < CFG.heartChance,
@@ -428,6 +453,10 @@ function createLayer(host) {
       reach: CFG.waveReach * (0.75 + Math.random() * 0.5),
     });
     if (waves.length > 12) waves.shift();
+  };
+  const onDown = e => {
+    const [px, py] = local(e);
+    if (e.button === 0 ? countsPrimaryClick() : e.button === 2 && TRACKPAD.secondaryClick) wave(px, py);
   };
   const ro = new ResizeObserver(() => {
     if (Math.max(1, host.clientWidth) !== W || Math.max(1, host.clientHeight) !== H) resize();
@@ -449,6 +478,9 @@ function createLayer(host) {
 
   const layer = {
     host,
+    // A finger landed on the trackpad: a wave where the pointer rests, if it rests here.
+    touch() { if (pointer.inside && running) wave(pointer.x, pointer.y); },
+    waveCount: () => waves.length,
     start() { if (running) return; running = true; lastT = 0; raf = requestAnimationFrame(frame); },
     stop() { running = false; cancelAnimationFrame(raf); },
     setColors,
@@ -501,6 +533,27 @@ function sync() {
   for (const layer of layers.values()) document.hidden ? layer.stop() : layer.start();
 }
 
+let socketDelay = 1000;
+function connectTrackpad() {
+  if (!TRACKPAD.port || !(TRACKPAD.touch || TRACKPAD.clickArea !== "anywhere")) return;
+  let socket;
+  try { socket = new WebSocket(`ws://127.0.0.1:${TRACKPAD.port}`); } catch { return; }
+  socket.onopen = () => { socketDelay = 1000; };
+  socket.onmessage = e => {
+    const line = String(e.data), kind = line[0];
+    fingers = kind === "u" ? [] : parseFingers(line.slice(2));
+    if (kind === "d" && TRACKPAD.touch && !document.hidden)
+      for (const layer of layers.values()) layer.touch();
+  };
+  // The relay lives in whichever VS Code window bound the port first; when it
+  // goes away another window takes over, so keep trying, slowly.
+  socket.onclose = () => {
+    fingers = [];
+    setTimeout(connectTrackpad, socketDelay);
+    socketDelay = Math.min(socketDelay * 2, 30000);
+  };
+}
+
 function recolor(instant) {
   const to = themeColors();
   for (const layer of layers.values()) layer.setColors(to, instant);
@@ -512,6 +565,7 @@ function boot() {
   if (!workbench) { setTimeout(boot, 250); return; }
   recolor(true);   // "vscode" colors exist only once the workbench is up
   sync();
+  connectTrackpad();
   // New groups (splits, new windows' layouts) and groups that became empty
   // again: a cheap periodic scan instead of observing the whole editor DOM.
   setInterval(() => { if (!document.hidden) sync(); }, 700);

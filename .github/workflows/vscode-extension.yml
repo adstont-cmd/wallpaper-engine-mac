@@ -20,7 +20,8 @@ permissions:
 
 jobs:
   vsix:
-    runs-on: ubuntu-latest
+    # macOS, for swiftc: the package carries the native trackpad helper.
+    runs-on: macos-latest
     defaults:
       run:
         working-directory: Integrations/vscode-ascii-ripples
@@ -33,6 +34,19 @@ jobs:
 
       - name: Test
         run: npm test
+
+      - name: Build trackpad helper
+        run: |
+          set -euo pipefail
+          mkdir -p bin
+          for arch in arm64 x86_64; do
+            swiftc -O -swift-version 5 -target "$arch-apple-macos13" \
+              helper/trackpad-helper.swift -o "bin/trackpad-helper-$arch"
+          done
+          lipo -create bin/trackpad-helper-arm64 bin/trackpad-helper-x86_64 -output bin/trackpad-helper
+          rm bin/trackpad-helper-arm64 bin/trackpad-helper-x86_64
+          codesign --force --sign - bin/trackpad-helper
+          file bin/trackpad-helper
 
       - name: Package
         run: |

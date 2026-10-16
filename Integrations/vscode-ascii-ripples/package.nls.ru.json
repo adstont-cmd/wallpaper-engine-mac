@@ -21,5 +21,16 @@
   "config.heartChance": "Шанс (%), что волна будет в форме сердечка.",
   "config.showWatermark": "Оставить логотип VS Code поверх обоев (подсказки с сочетаниями клавиш остаются всегда).",
   "config.colors": "Свои цвета тем `dark` и `light`, например `{ \"dark\": { \"bg\": \"#141416\", \"text\": \"#96969e\", \"wave\": \"#4696eb\" } }`.",
-  "config.advanced": "Любые другие настройки обоев по внутреннему имени, например `{ \"blobSize\": 400, \"waveLife\": 8 }`. Список в README расширения."
+  "config.advanced": "Любые другие настройки обоев по внутреннему имени, например `{ \"blobSize\": 400, \"waveLife\": 8 }`. Список в README расширения.",
+  "config.trackpad.touch": "Касание трекпада пальцем пускает волну под курсором, без нажатия (macOS).",
+  "config.trackpad.clickArea": "Где на трекпаде должен быть клик, чтобы пустить волну, как в настройке приложения. Клик мышью считается везде, кроме «Никогда».",
+  "config.trackpad.clickArea.anywhere": "В любом месте трекпада.",
+  "config.trackpad.clickArea.anyEdge": "У любого края трекпада (внешняя пятая часть).",
+  "config.trackpad.clickArea.leftEdge": "Левый край.",
+  "config.trackpad.clickArea.rightEdge": "Правый край.",
+  "config.trackpad.clickArea.topEdge": "Верхний край (дальний от вас).",
+  "config.trackpad.clickArea.bottomEdge": "Нижний край (ближний к вам).",
+  "config.trackpad.clickArea.never": "Клики не пускают волны.",
+  "config.trackpad.secondaryClick": "Клик двумя пальцами (правый клик) тоже пускает волну.",
+  "config.trackpad.port": "Локальный порт, через который окна VS Code получают касания трекпада."
 }
