@@ -1,0 +1,44 @@
+# Tests and packages the ASCII Ripples VS Code extension. The .vsix is attached to
+# the run as the "ascii-ripples-vsix" artifact.
+name: VS Code extension
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - Integrations/vscode-ascii-ripples/**
+      - .github/workflows/vscode-extension.yml
+  pull_request:
+    paths:
+      - Integrations/vscode-ascii-ripples/**
+      - .github/workflows/vscode-extension.yml
+
+permissions:
+  contents: read
+
+jobs:
+  vsix:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Integrations/vscode-ascii-ripples
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Test
+        run: npm test
+
+      - name: Package
+        run: |
+          cp ../../LICENSE LICENSE
+          npx --yes @vscode/vsce@3 package --out .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ascii-ripples-vsix
+          path: Integrations/vscode-ascii-ripples/*.vsix
+          if-no-files-found: error

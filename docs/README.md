@@ -82,6 +82,7 @@ file; pass `rg -u` to search them deliberately.
 | [features/pixiv.md](features/pixiv.md) | pixiv page: rankings and tag search, saving a page as a still wallpaper, pixiv sign-in and R-18 works |
 | [features/audio-response.md](features/audio-response.md) | Audio response setting, system-audio capture permission, spectrum analysis and what scene and web wallpapers receive |
 | [features/web-wallpapers.md](features/web-wallpapers.md) | HTML/JS wallpapers hosted in a web view, host protocol, limits |
+| [features/vscode-wallpaper.md](features/vscode-wallpaper.md) | The ASCII Ripples VS Code extension: the wallpaper behind empty editor groups, how it patches VS Code, settings, building the .vsix |
 | [features/user-files.md](features/user-files.md) | Files and folders chosen for wallpaper properties: the managed copy, its lifetime and cleanup, lock-screen publication and the inspector |
 | [features/media-integration.md](features/media-integration.md) | Now-playing metadata and covers for scene and web wallpapers: the bundled MediaRemote adapter first, AppleScript as fallback |
 | [features/lock-screen.md](features/lock-screen.md) | Experimental animated lock screen and wallpaper-as-screen-saver |

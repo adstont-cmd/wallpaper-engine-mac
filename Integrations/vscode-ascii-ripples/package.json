@@ -1,0 +1,62 @@
+{
+  "name": "ascii-ripples",
+  "displayName": "ASCII Ripples",
+  "description": "%description%",
+  "version": "0.1.0",
+  "publisher": "adstont-cmd",
+  "license": "GPL-2.0-only",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/adstont-cmd/wallpaper-engine-mac",
+    "directory": "Integrations/vscode-ascii-ripples"
+  },
+  "engines": { "vscode": "^1.82.0" },
+  "categories": ["Themes", "Other"],
+  "keywords": ["wallpaper", "background", "ascii", "animation"],
+  "extensionKind": ["ui"],
+  "main": "./extension.js",
+  "l10n": "./l10n",
+  "activationEvents": ["onStartupFinished"],
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "vscode:uninstall": "node ./uninstall.js"
+  },
+  "contributes": {
+    "commands": [
+      { "command": "asciiRipples.enable", "title": "%command.enable%", "category": "ASCII Ripples" },
+      { "command": "asciiRipples.disable", "title": "%command.disable%", "category": "ASCII Ripples" },
+      { "command": "asciiRipples.reinstall", "title": "%command.reinstall%", "category": "ASCII Ripples" }
+    ],
+    "configuration": {
+      "title": "ASCII Ripples",
+      "properties": {
+        "asciiRipples.enabled": { "type": "boolean", "default": true, "order": 0, "description": "%config.enabled%" },
+        "asciiRipples.theme": {
+          "type": "string", "default": "time", "order": 1,
+          "enum": ["time", "vscode", "auto", "dark", "light"],
+          "enumDescriptions": ["%config.theme.time%", "%config.theme.vscode%", "%config.theme.auto%", "%config.theme.dark%", "%config.theme.light%"],
+          "description": "%config.theme%"
+        },
+        "asciiRipples.latitude": { "type": "string", "default": "", "order": 2, "description": "%config.latitude%" },
+        "asciiRipples.longitude": { "type": "string", "default": "", "order": 3, "description": "%config.longitude%" },
+        "asciiRipples.opacity": { "type": "number", "default": 1, "minimum": 0.05, "maximum": 1, "order": 4, "description": "%config.opacity%" },
+        "asciiRipples.fps": { "type": "number", "default": 30, "minimum": 0, "maximum": 120, "order": 5, "description": "%config.fps%" },
+        "asciiRipples.cellSize": { "type": "number", "default": 13, "minimum": 6, "maximum": 32, "order": 6, "description": "%config.cellSize%" },
+        "asciiRipples.chars": { "type": "string", "default": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", "order": 7, "description": "%config.chars%" },
+        "asciiRipples.waves": { "type": "boolean", "default": true, "order": 8, "description": "%config.waves%" },
+        "asciiRipples.flashlight": { "type": "boolean", "default": true, "order": 9, "description": "%config.flashlight%" },
+        "asciiRipples.heartChance": { "type": "number", "default": 15, "minimum": 0, "maximum": 100, "order": 10, "description": "%config.heartChance%" },
+        "asciiRipples.showWatermark": { "type": "boolean", "default": true, "order": 11, "description": "%config.showWatermark%" },
+        "asciiRipples.colors": {
+          "type": "object", "default": {}, "order": 12,
+          "markdownDescription": "%config.colors%",
+          "properties": {
+            "dark": { "type": "object", "properties": { "bg": { "type": "string" }, "text": { "type": "string" }, "wave": { "type": "string" } } },
+            "light": { "type": "object", "properties": { "bg": { "type": "string" }, "text": { "type": "string" }, "wave": { "type": "string" } } }
+          }
+        },
+        "asciiRipples.advanced": { "type": "object", "default": {}, "order": 13, "markdownDescription": "%config.advanced%" }
+      }
+    }
+  }
+}
