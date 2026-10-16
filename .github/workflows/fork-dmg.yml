@@ -27,8 +27,16 @@ jobs:
 
       - name: Package
         run: |
-          set -euo pipefail
-          python3 scripts/package.py --configuration Release
+          set -uo pipefail
+          python3 scripts/package.py --configuration Release 2>&1 | tee package.log
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            # One annotation carries the tail of the log, so the cause is readable from
+            # the run page (and the API) without downloading the full log.
+            tail -n 60 package.log | python3 -c 'import sys; print("::error title=package.py failed::" + sys.stdin.read().replace("%", "%25").replace("\r", "").replace("\n", "%0A"))'
+            exit "$status"
+          fi
+          set -e
           find . -name 'WallpaperMachine-*.dmg' -not -path './.git/*'
 
       - uses: actions/upload-artifact@v4
