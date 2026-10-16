@@ -1,0 +1,9 @@
+{
+  "Reload Window": "Перезагрузить окно",
+  "ASCII Ripples is already up to date.": "ASCII Ripples уже установлены.",
+  "ASCII Ripples is installed. Reload the window to see it behind empty editors.": "ASCII Ripples установлены. Перезагрузите окно, чтобы увидеть их за пустыми редакторами.",
+  "ASCII Ripples is removed. Reload the window to finish.": "ASCII Ripples удалены. Перезагрузите окно, чтобы закончить.",
+  "Copy Command": "Скопировать команду",
+  "ASCII Ripples cannot write into {0}. Give your user ownership of VS Code (run in Terminal: {1}), then run \"ASCII Ripples: Reinstall\".": "ASCII Ripples не может записать в {0}. Сделайте VS Code своим (в Терминале: {1}), затем выполните «ASCII Ripples: Переустановить».",
+  "ASCII Ripples failed: {0}": "Ошибка ASCII Ripples: {0}"
+}

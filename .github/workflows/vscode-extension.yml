@@ -1,0 +1,89 @@
+# Tests and packages the ASCII Ripples VS Code extension. The .vsix is attached to
+# the run as the "ascii-ripples-vsix" artifact. On main, a version in package.json
+# without a release yet becomes a GitHub release tagged `ascii-ripples-<version>`
+# (never `v*`, which cuts an app release).
+name: VS Code extension
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - Integrations/vscode-ascii-ripples/**
+      - .github/workflows/vscode-extension.yml
+  pull_request:
+    paths:
+      - Integrations/vscode-ascii-ripples/**
+      - .github/workflows/vscode-extension.yml
+
+permissions:
+  contents: read
+
+jobs:
+  vsix:
+    # macOS, for swiftc: the package carries the native trackpad helper.
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: Integrations/vscode-ascii-ripples
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Test
+        run: npm test
+
+      - name: Build trackpad helper
+        run: |
+          set -euo pipefail
+          mkdir -p bin
+          for arch in arm64 x86_64; do
+            swiftc -O -swift-version 5 -target "$arch-apple-macos13" \
+              helper/trackpad-helper.swift -o "bin/trackpad-helper-$arch"
+          done
+          lipo -create bin/trackpad-helper-arm64 bin/trackpad-helper-x86_64 -output bin/trackpad-helper
+          rm bin/trackpad-helper-arm64 bin/trackpad-helper-x86_64
+          codesign --force --sign - bin/trackpad-helper
+          file bin/trackpad-helper
+
+      - name: Package
+        run: |
+          cp ../../LICENSE LICENSE
+          npx --yes @vscode/vsce@3 package --out .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ascii-ripples-vsix
+          path: Integrations/vscode-ascii-ripples/*.vsix
+          if-no-files-found: error
+
+  release:
+    if: github.ref == 'refs/heads/main'
+    needs: vsix
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: ascii-ripples-vsix
+          path: dist
+
+      - name: Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          version=$(node -p 'require("./Integrations/vscode-ascii-ripples/package.json").version')
+          tag="ascii-ripples-$version"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "$tag is already released; raise the version in package.json to release again."
+            exit 0
+          fi
+          gh release create "$tag" dist/*.vsix --target "$GITHUB_SHA" \
+            --title "ASCII Ripples for VS Code $version" \
+            --notes "VS Code extension: the ASCII Ripples wallpaper behind empty editors. Install: Extensions → … → Install from VSIX. / Расширение VS Code: обои ASCII Ripples за пустым редактором. Установка: Extensions → … → Install from VSIX."

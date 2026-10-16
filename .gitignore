@@ -55,3 +55,8 @@ CLAUDE.local.md
 /node_modules/
 /package.json
 /package-lock.json
+
+# VS Code extension packages and the license copy the package step adds
+*.vsix
+Integrations/vscode-ascii-ripples/LICENSE
+Integrations/vscode-ascii-ripples/bin/
