@@ -111,7 +111,14 @@ def resolve_libraries(roots, seeds, prefix):
             if dependency.startswith(str(prefix)):
                 add(Path(dependency))
             elif dependency.startswith("@rpath/") and Path(dependency).name not in libraries and "libswift" not in dependency:
-                relocated.append(f"{file}: {dependency}")
+                # Newer Homebrew bottles (brotli on macOS 26, for one) load a library of the
+                # same keg through `@rpath`; that sibling is Homebrew's own file, not output
+                # an earlier packaging run relocated.
+                sibling = file.parent / Path(dependency).name
+                if str(file).startswith(str(prefix)) and sibling.is_file():
+                    add(sibling)
+                else:
+                    relocated.append(f"{file}: {dependency}")
     if relocated:
         raise PackagingError(f"{FRESH_BUILD}\n  " + "\n  ".join(relocated))
     return libraries
