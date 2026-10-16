@@ -57,13 +57,8 @@ struct WebWallpaperMouseRouting {
         case .move, .scroll, .down:
             break
         }
-        let onDesktop: Int? = {
-            guard let wallpaperWindow else { return nil }
-            if frontWindow == wallpaperWindow { return wallpaperWindow }
-            guard let layer = layer(frontWindow), layer < Self.desktopLayerCeiling else { return nil }
-            return wallpaperWindow
-        }()
-        guard let target = onDesktop else {
+        guard let target = Self.desktopTarget(wallpaperWindow: wallpaperWindow, frontWindow: frontWindow, layer: layer)
+        else {
             if case .scroll = kind { return .ignore }
             guard let previous = hoveredWindow else { return .ignore }
             hoveredWindow = nil
@@ -75,6 +70,16 @@ struct WebWallpaperMouseRouting {
         hoveredWindow = target
         if let previous, previous != target { return .exitThenDeliver(exit: previous, to: target) }
         return .deliver(to: target)
+    }
+
+    /// The wallpaper window an event at the pointer belongs to: `wallpaperWindow`
+    /// when the window server would hit it or something stacked below ordinary
+    /// windows, nil when an application window is in the way.
+    static func desktopTarget(wallpaperWindow: Int?, frontWindow: Int, layer: (Int) -> Int?) -> Int? {
+        guard let wallpaperWindow else { return nil }
+        if frontWindow == wallpaperWindow { return wallpaperWindow }
+        guard let layer = layer(frontWindow), layer < desktopLayerCeiling else { return nil }
+        return wallpaperWindow
     }
 }
 
@@ -237,7 +242,11 @@ final class WebWallpaperMouseForwarder: WebWallpaperPointerMonitoring {
     ]
 
     private let windows: @MainActor () -> [WebWallpaperWindow]
+    private let loadTriggers: @MainActor () -> WebWallpaperClickTriggers
+    private let contacts: any TrackpadContactSource
     private var monitor: Any?
+    private var triggers = WebWallpaperClickTriggers()
+    private var triggersObserver: NSObjectProtocol?
     private var routing = WebWallpaperMouseRouting()
     private var layers: [Int: Int] = [:]
     private var reportedMissingWindow = false
@@ -247,8 +256,14 @@ final class WebWallpaperMouseForwarder: WebWallpaperPointerMonitoring {
         return true
     }
 
-    init(windows: @escaping @MainActor () -> [WebWallpaperWindow]) {
+    init(
+        windows: @escaping @MainActor () -> [WebWallpaperWindow],
+        triggers: @escaping @MainActor () -> WebWallpaperClickTriggers = { WebWallpaperClickTriggerPreferences.load() },
+        contacts: (any TrackpadContactSource)? = nil
+    ) {
         self.windows = windows
+        self.loadTriggers = triggers
+        self.contacts = contacts ?? TrackpadContactMonitor.shared
     }
 
     var isActive: Bool { monitor != nil }
@@ -259,17 +274,39 @@ final class WebWallpaperMouseForwarder: WebWallpaperPointerMonitoring {
             monitor = NSEvent.addGlobalMonitorForEvents(matching: Self.mask) { [weak self] event in
                 MainActor.assumeIsolated { self?.handle(event) }
             }
+            triggersObserver = NotificationCenter.default.addObserver(
+                forName: WebWallpaperClickTriggerPreferences.didChange, object: nil, queue: .main
+            ) { [weak self] _ in
+                MainActor.assumeIsolated { self?.reloadTriggers() }
+            }
+            contacts.onTouchBegan = { [weak self] in self?.touchBegan() }
+            reloadTriggers()
         } else if let monitor {
             NSEvent.removeMonitor(monitor)
             self.monitor = nil
+            if let triggersObserver { NotificationCenter.default.removeObserver(triggersObserver) }
+            triggersObserver = nil
+            contacts.onTouchBegan = nil
+            contacts.setActive(false)
             routing.reset()
             layers.removeAll()
             moves.reset()
         }
     }
 
+    /// Reads the saved click triggers, and watches the trackpad only while one of them needs it.
+    private func reloadTriggers() {
+        triggers = loadTriggers()
+        contacts.setActive(isActive && triggers.needsTrackpadContacts)
+    }
+
     private func handle(_ event: NSEvent) {
         guard let kind = Self.kind(of: event) else { return }
+        // A primary press the user's trigger choice leaves out never starts a gesture, so its
+        // drags and release find no press to follow and are dropped by the routing too.
+        if case .down(button: 0) = kind, !triggers.countsPrimaryClick(fingers: contacts.touchingFingers) {
+            return
+        }
         let screenPoint = event.window.map { $0.convertPoint(toScreen: event.locationInWindow) } ?? event.locationInWindow
         guard let front = Self.frontWindow(of: event, kind: kind, hitTest: { [self] in
             if !reportedMissingWindow {
@@ -286,11 +323,56 @@ final class WebWallpaperMouseForwarder: WebWallpaperPointerMonitoring {
             break
         case .deliver(let number):
             deliver(event, kind: kind, screenPoint: screenPoint, to: number, in: windows)
+            clickForSecondaryPress(kind, screenPoint: screenPoint, to: number, in: windows)
         case .exit(let number):
             forwardExit(from: number, in: windows)
         case .exitThenDeliver(let exit, let number):
             forwardExit(from: exit, in: windows)
             deliver(event, kind: kind, screenPoint: screenPoint, to: number, in: windows)
+            clickForSecondaryPress(kind, screenPoint: screenPoint, to: number, in: windows)
+        }
+    }
+
+    /// A secondary press the page received is followed by a primary click when the user asked
+    /// for secondary clicks to count as clicks.
+    private func clickForSecondaryPress(
+        _ kind: WebWallpaperMouseRouting.Kind, screenPoint: NSPoint, to number: Int, in windows: [WebWallpaperWindow]
+    ) {
+        guard triggers.secondaryClick, case .down(button: 1) = kind,
+              let window = windows.first(where: { $0.windowNumber == number }) else { return }
+        click(at: screenPoint, in: window)
+    }
+
+    /// A finger landed on the trackpad: when touches count as clicks and the pointer rests on the
+    /// desktop, the page under it is clicked there. Nothing is sent in the middle of a forwarded
+    /// press, so a page never sees a click inside someone else's drag.
+    private func touchBegan() {
+        guard isActive, triggers.touch, !routing.isPressed else { return }
+        let screenPoint = NSEvent.mouseLocation
+        let windows = windows()
+        guard let under = windows.first(where: { $0.frame.contains(screenPoint) }) else { return }
+        // A finger landing is not an event the window server routed, so ask it what is under the
+        // pointer. Once per touch, not per move, so the round trip costs nothing noticeable.
+        let front = NSWindow.windowNumber(at: screenPoint, belowWindowWithWindowNumber: 0)
+        guard WebWallpaperMouseRouting.desktopTarget(
+            wallpaperWindow: under.windowNumber, frontWindow: front, layer: { [self] in layer(of: $0) }) != nil
+        else { return }
+        click(at: screenPoint, in: under)
+    }
+
+    /// Sends a primary press and release at `screenPoint` to the page of `window`, after any held
+    /// move so the page sees the pointer where the click is.
+    private func click(at screenPoint: NSPoint, in window: WebWallpaperWindow) {
+        moves.flush(window: window.windowNumber)
+        let local = window.convertPoint(fromScreen: screenPoint)
+        let timestamp = ProcessInfo.processInfo.systemUptime
+        for type in [NSEvent.EventType.leftMouseDown, .leftMouseUp] {
+            guard let event = NSEvent.mouseEvent(
+                with: type, location: local, modifierFlags: [], timestamp: timestamp,
+                windowNumber: window.windowNumber, context: nil, eventNumber: 0, clickCount: 1,
+                pressure: type == .leftMouseDown ? 1 : 0)
+            else { continue }
+            window.page.deliverMouse(event)
         }
     }
 

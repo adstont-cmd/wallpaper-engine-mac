@@ -23,7 +23,8 @@ extension PanelController {
       desktopPictureLocked: store.lockScreenWallpaper?.locksDesktopPictureChoice ?? false,
       refreshesDesktopPicture: playback.refreshesDesktopPicturePeriodically,
       keepsWindowsOnWallpaperClick: !DesktopClickRevealPreference.isEnabled,
-      livePropertyEdits: LivePropertyEditing.isEnabled(defaults: defaults))
+      livePropertyEdits: LivePropertyEditing.isEnabled(defaults: defaults),
+      webClickTriggers: WebWallpaperClickTriggerPreferences.load(defaults: defaults))
   }
 
   /// The Animate lock screen row and its quick tile.

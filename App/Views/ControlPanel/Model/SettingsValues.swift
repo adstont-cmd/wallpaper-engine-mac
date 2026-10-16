@@ -57,6 +57,8 @@ struct DesktopSettings: Equatable, Sendable {
   var keepsWindowsOnWallpaperClick: Bool
   /// The displays follow property edits before Apply.
   var livePropertyEdits: Bool
+  /// Which trackpad actions web wallpapers see as a click.
+  var webClickTriggers: WebWallpaperClickTriggers
 
   /// A timed retake of a picture that is not written does nothing, so the switch waits for the one it depends on.
   var canChangeRefresh: Bool { writesDesktopPicture }

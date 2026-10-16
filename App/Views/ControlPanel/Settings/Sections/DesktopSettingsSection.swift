@@ -4,6 +4,7 @@ import SwiftUI
 /// Control, the lock screen and the screen saver.
 struct DesktopSettingsSection: View {
   private static let desktop = SettingsItem.Group("desktop", title: "Desktop")
+  private static let webClicks = SettingsItem.Group("web-clicks", title: "Clicks on web wallpapers")
   private static let lockScreen = SettingsItem.Group("lock-screen", title: "Lock screen")
   private static let screenSaver = SettingsItem.Group("screen-saver", title: "Screen saver")
 
@@ -34,6 +35,25 @@ struct DesktopSettingsSection: View {
       "While you edit a wallpaper’s properties, your displays follow each change before you press Apply changes, and Revert puts the saved look back. Pictures and options that switch an effect on or off still wait for Apply changes. The lock screen and the Mission Control picture keep the saved look until you apply."
   )
 
+  static let webClickArea = SettingsItem(
+    id: "desktop.web-click-area", section: .desktop, group: webClicks,
+    title: "Count a click",
+    note:
+      "Where a click has to land on the trackpad for web wallpapers to receive it. Edges are the outer fifth of the trackpad. Clicks from a mouse always count, unless this is Never.",
+    keywords: ["Trackpad"])
+  static let webClickOnTouch = SettingsItem(
+    id: "desktop.web-click-on-touch", section: .desktop, group: webClicks,
+    title: "Touching the trackpad clicks",
+    note:
+      "A finger landing on the trackpad clicks a web wallpaper where the pointer is, without pressing.",
+    keywords: ["Trackpad"])
+  static let webClickOnSecondaryClick = SettingsItem(
+    id: "desktop.web-click-on-secondary-click", section: .desktop, group: webClicks,
+    title: "Two-finger click also clicks",
+    note:
+      "A secondary click, with two fingers or the right button, also reaches web wallpapers as an ordinary click.",
+    keywords: ["Trackpad"])
+
   static let lockScreenSwitch = SettingsItem(
     id: "desktop.lock-screen", section: .desktop, group: lockScreen, title: "Animate lock screen",
     note: "Experimental")
@@ -56,7 +76,7 @@ struct DesktopSettingsSection: View {
 
   static let items = [
     writeDesktopPicture, refreshMissionControl, keepWindowsOnClick, livePropertyEdits,
-    lockScreenSwitch, lockScreenStatus, lockScreenContext, screenSaverSwitch, screenSaverStatus,
+    webClickArea, webClickOnTouch, webClickOnSecondaryClick, lockScreenSwitch, lockScreenStatus, lockScreenContext, screenSaverSwitch, screenSaverStatus,
     screenSaverContext,
   ]
 
@@ -77,6 +97,16 @@ struct DesktopSettingsSection: View {
           SettingsSwitchControl(key: .keepWindowsOnWallpaperClick)
         }
         SettingsRow(Self.livePropertyEdits) { SettingsSwitchControl(key: .livePropertyEdits) }
+      }
+      SettingsGroup(Self.webClicks, in: .desktop) {
+        SettingsRow(Self.webClickArea) {
+          SettingsMenuControl(
+            key: "webClickArea", saved: desktop.webClickTriggers.clickArea,
+            options: WebWallpaperClickArea.allCases.map { SettingsMenuOption(value: $0, title: $0.title) }
+          ) { area in try await controller.setWebClickTriggers { $0.clickArea = area } }
+        }
+        SettingsRow(Self.webClickOnTouch) { SettingsSwitchControl(key: .clickOnTrackpadTouch) }
+        SettingsRow(Self.webClickOnSecondaryClick) { SettingsSwitchControl(key: .clickOnSecondaryClick) }
       }
       SettingsGroup(Self.lockScreen, in: .desktop) {
         SettingsRow(Self.lockScreenSwitch) { SettingsSwitchControl(key: .lockScreenEnabled) }

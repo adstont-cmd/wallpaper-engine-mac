@@ -33,6 +33,12 @@ for them.
   wallpaper* turns off macOS's "Click wallpaper to reveal desktop" option (the
   same value System Settings → Desktop & Dock writes) so a click no longer
   slides every window aside.
+  The *Clicks on web wallpapers* group beside it chooses which trackpad actions a
+  page sees as a click: *Count a click* limits primary clicks to anywhere (the
+  default), any edge, one edge of the trackpad, or never; *Touching the trackpad
+  clicks* clicks where the pointer is as soon as a finger lands; *Two-finger click
+  also clicks* follows a secondary click with a primary one. A page that reacts to
+  `mousedown` (ripples, sparks) follows the choice without knowing about trackpads.
   Pointer moves reach the page no more often than it draws (60 a second near
   WebKit's default cadence, the display's refresh for a page that draws at it), or as
   often as the [frame-rate limit](#frame-rate-limit) when that is lower (never below
@@ -399,6 +405,20 @@ removed when the page stops.
   so a gesture never sees a stale pointer and an exit always follows the last move;
   removing the monitor drops anything held. `RuntimeCounters.pointerDelivered` counts
   deliveries, so it shows the reduction.
+- **Click triggers** (`WebWallpaperClickTriggers`, saved by
+  `WebWallpaperClickTriggerPreferences`): the forwarder drops a primary press whose
+  fingers fall outside the chosen trackpad area (its drags and release then find no
+  press and are dropped by the routing), follows a forwarded secondary press with a
+  synthesized primary press and release, and on a finger landing clicks the page
+  under the pointer when `WebWallpaperMouseRouting.desktopTarget` says the desktop
+  is in front there (one window-server query per touch, none per move). Fingers come
+  from `TrackpadContactMonitor`, which loads the private MultitouchSupport framework
+  at run time and registers a contact-frame callback; it runs only while the monitor
+  is active and a trigger needs fingers, re-registers after the Mac wakes, and
+  reports no fingers when the framework is missing, so a click then counts as a
+  mouse click. Edges are the outer fifth of the pad, measured from its bottom-left
+  corner. The defaults (any click, no touch, no secondary click) watch no trackpad
+  and forward exactly what was forwarded before.
 - `DesktopClickRevealPreference` (`App/Services/Desktop/`) reads and writes
   `com.apple.WindowManager EnableStandardClickToShowDesktop` for the Settings toggle.
 - `WallpaperPresentationPolicy` counts both window classes when deciding whether a

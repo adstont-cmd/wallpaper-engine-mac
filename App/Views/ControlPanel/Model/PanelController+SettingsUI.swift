@@ -6,6 +6,7 @@ import Foundation
 enum SettingsSwitchKey: String, CaseIterable, Sendable {
   case launchAtLogin, hideAfterActivating
   case writeDesktopPicture, refreshDesktopPicture, keepWindowsOnWallpaperClick, livePropertyEdits
+  case clickOnTrackpadTouch, clickOnSecondaryClick
   case lockScreenEnabled, screenSaverEnabled
   case wallpapersMuted, playOnlyOnActiveDisplay
   case sceneOptimization, sceneOnDemand, contentPacing, sharedVideoDecode, sceneVideoPlaneSampling
@@ -24,6 +25,8 @@ extension PanelController {
     case .refreshDesktopPicture: desktopSettings.refreshesDesktopPicture
     case .keepWindowsOnWallpaperClick: desktopSettings.keepsWindowsOnWallpaperClick
     case .livePropertyEdits: desktopSettings.livePropertyEdits
+    case .clickOnTrackpadTouch: desktopSettings.webClickTriggers.touch
+    case .clickOnSecondaryClick: desktopSettings.webClickTriggers.secondaryClick
     case .lockScreenEnabled: lockScreenState.isRequested
     case .screenSaverEnabled: screenSaverState.isRequested
     case .wallpapersMuted:
@@ -61,6 +64,8 @@ extension PanelController {
     case .refreshDesktopPicture: try await setRefreshesDesktopPicture(on)
     case .keepWindowsOnWallpaperClick: try await setKeepsWindowsOnWallpaperClick(on)
     case .livePropertyEdits: try await setLivePropertyEdits(on)
+    case .clickOnTrackpadTouch: try await setWebClickTriggers { $0.touch = on }
+    case .clickOnSecondaryClick: try await setWebClickTriggers { $0.secondaryClick = on }
     case .lockScreenEnabled: try await setLockScreenEnabled(on)
     case .screenSaverEnabled: try await setScreenSaverEnabled(on)
     case .wallpapersMuted: try await setWallpapersMuted(on)
@@ -140,6 +145,20 @@ extension BridgeBatteryMode {
     case .keepRunning: L("Keep running")
     case .reducedQuality: L("Reduced quality")
     case .pause: L("Pause")
+    }
+  }
+}
+
+extension WebWallpaperClickArea {
+  @MainActor var title: String {
+    switch self {
+    case .anywhere: L("Anywhere on the trackpad")
+    case .anyEdge: L("Near any edge")
+    case .leftEdge: L("Near the left edge")
+    case .rightEdge: L("Near the right edge")
+    case .topEdge: L("Near the top edge")
+    case .bottomEdge: L("Near the bottom edge")
+    case .never: L("Never")
     }
   }
 }

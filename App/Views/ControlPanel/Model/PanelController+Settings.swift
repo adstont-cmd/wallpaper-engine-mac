@@ -114,6 +114,15 @@ extension PanelController {
     }
   }
 
+  /// `clickOnTrackpadTouch`, `clickOnSecondaryClick` and the click-area menu: which trackpad actions
+  /// web wallpapers see as a click. The pointer forwarder hears the change and applies it at once.
+  func setWebClickTriggers(_ edit: (inout WebWallpaperClickTriggers) -> Void) async throws {
+    try await change {
+      WebWallpaperClickTriggerPreferences.update(defaults: defaults, edit)
+      refreshSystemReadings()
+    }
+  }
+
   /// `lockScreenEnabled` (experimental). Enabling it is refused while a display follows desktop Spaces,
   /// because the lock screen cannot show a different wallpaper per Space.
   func setLockScreenEnabled(_ enabled: Bool) async throws {

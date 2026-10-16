@@ -7248,6 +7248,51 @@
     },
     "SteamCMD is Valve’s free download tool. Install it into this app’s own folder or locate a copy you already have; the sign-in follows on its own." : {
       "localizations" : {"ja" : {"stringUnit" : {"state" : "translated", "value" : "SteamCMDはValveの無料ダウンロードツールです。このアプリ専用のフォルダにインストールするか、既存のコピーを指定してください。完了すると自動的にサインインに進みます。"}}, "zh-Hans" : {"stringUnit" : {"state" : "translated", "value" : "SteamCMD 是 Valve 的免费下载工具。可以安装到应用自己的文件夹，也可以选择已有副本，完成后会自动继续登录。"}}, "zh-Hant" : {"stringUnit" : {"state" : "translated", "value" : "SteamCMD 是 Valve 的免費下載工具。你可以安裝到此 App 自己的資料夾，或指定現有副本；完成後會自動接著登入。"}}}
+    },
+    "Clicks on web wallpapers" : {
+      "localizations" : {"ja" : {"stringUnit" : {"state" : "translated", "value" : "Webの壁紙のクリック"}}, "zh-Hans" : {"stringUnit" : {"state" : "translated", "value" : "网页壁纸的点按"}}, "zh-Hant" : {"stringUnit" : {"state" : "translated", "value" : "網頁桌布的按一下"}}}
+    },
+    "Count a click" : {
+      "localizations" : {"ja" : {"stringUnit" : {"state" : "translated", "value" : "クリックとして扱う位置"}}, "zh-Hans" : {"stringUnit" : {"state" : "translated", "value" : "计为点按的位置"}}, "zh-Hant" : {"stringUnit" : {"state" : "translated", "value" : "算作按一下的位置"}}}
+    },
+    "Where a click has to land on the trackpad for web wallpapers to receive it. Edges are the outer fifth of the trackpad. Clicks from a mouse always count, unless this is Never." : {
+      "localizations" : {"ja" : {"stringUnit" : {"state" : "translated", "value" : "Webの壁紙がクリックを受け取るために、トラックパッドのどこをクリックする必要があるかを指定します。端とはトラックパッドの外側5分の1です。「しない」以外では、マウスのクリックは常に有効です。"}}, "zh-Hans" : {"stringUnit" : {"state" : "translated", "value" : "点按需落在触控板的哪个位置，网页壁纸才会收到。边缘指触控板外侧五分之一的区域。除非选择“永不”，鼠标点按始终有效。"}}, "zh-Hant" : {"stringUnit" : {"state" : "translated", "value" : "按一下需落在觸控式軌跡板的哪個位置，網頁桌布才會收到。邊緣指觸控式軌跡板外側五分之一的區域。除非選擇「永不」，滑鼠按一下一律有效。"}}}
+    },
+    "Trackpad" : {
+      "localizations" : {"ja" : {"stringUnit" : {"state" : "translated", "value" : "トラックパッド"}}, "zh-Hans" : {"stringUnit" : {"state" : "translated", "value" : "触控板"}}, "zh-Hant" : {"stringUnit" : {"state" : "translated", "value" : "觸控式軌跡板"}}}
+    },
+    "Touching the trackpad clicks" : {
+      "localizations" : {"ja" : {"stringUnit" : {"state" : "translated", "value" : "トラックパッドに触れるとクリック"}}, "zh-Hans" : {"stringUnit" : {"state" : "translated", "value" : "触摸触控板即点按"}}, "zh-Hant" : {"stringUnit" : {"state" : "translated", "value" : "觸碰觸控式軌跡板即按一下"}}}
+    },
+    "A finger landing on the trackpad clicks a web wallpaper where the pointer is, without pressing." : {
+      "localizations" : {"ja" : {"stringUnit" : {"state" : "translated", "value" : "トラックパッドに指が触れると、押し込まなくてもポインタの位置でWebの壁紙をクリックします。"}}, "zh-Hans" : {"stringUnit" : {"state" : "translated", "value" : "手指触碰触控板时，无需按下即会在指针位置点按网页壁纸。"}}, "zh-Hant" : {"stringUnit" : {"state" : "translated", "value" : "手指觸碰觸控式軌跡板時，不必按下就會在指標位置按一下網頁桌布。"}}}
+    },
+    "Two-finger click also clicks" : {
+      "localizations" : {"ja" : {"stringUnit" : {"state" : "translated", "value" : "2本指クリックもクリックとして扱う"}}, "zh-Hans" : {"stringUnit" : {"state" : "translated", "value" : "双指点按也算点按"}}, "zh-Hant" : {"stringUnit" : {"state" : "translated", "value" : "雙指按一下也算按一下"}}}
+    },
+    "A secondary click, with two fingers or the right button, also reaches web wallpapers as an ordinary click." : {
+      "localizations" : {"ja" : {"stringUnit" : {"state" : "translated", "value" : "2本指または右ボタンによる副ボタンのクリックも、通常のクリックとしてWebの壁紙に届きます。"}}, "zh-Hans" : {"stringUnit" : {"state" : "translated", "value" : "辅助点按（双指或右键）也会作为普通点按传给网页壁纸。"}}, "zh-Hant" : {"stringUnit" : {"state" : "translated", "value" : "輔助按一下（雙指或右鍵）也會以一般按一下的方式傳給網頁桌布。"}}}
+    },
+    "Anywhere on the trackpad" : {
+      "localizations" : {"ja" : {"stringUnit" : {"state" : "translated", "value" : "トラックパッドのどこでも"}}, "zh-Hans" : {"stringUnit" : {"state" : "translated", "value" : "触控板任意位置"}}, "zh-Hant" : {"stringUnit" : {"state" : "translated", "value" : "觸控式軌跡板任何位置"}}}
+    },
+    "Near any edge" : {
+      "localizations" : {"ja" : {"stringUnit" : {"state" : "translated", "value" : "いずれかの端"}}, "zh-Hans" : {"stringUnit" : {"state" : "translated", "value" : "任意边缘"}}, "zh-Hant" : {"stringUnit" : {"state" : "translated", "value" : "任一邊緣"}}}
+    },
+    "Near the left edge" : {
+      "localizations" : {"ja" : {"stringUnit" : {"state" : "translated", "value" : "左端"}}, "zh-Hans" : {"stringUnit" : {"state" : "translated", "value" : "左边缘"}}, "zh-Hant" : {"stringUnit" : {"state" : "translated", "value" : "左邊緣"}}}
+    },
+    "Near the right edge" : {
+      "localizations" : {"ja" : {"stringUnit" : {"state" : "translated", "value" : "右端"}}, "zh-Hans" : {"stringUnit" : {"state" : "translated", "value" : "右边缘"}}, "zh-Hant" : {"stringUnit" : {"state" : "translated", "value" : "右邊緣"}}}
+    },
+    "Near the top edge" : {
+      "localizations" : {"ja" : {"stringUnit" : {"state" : "translated", "value" : "上端"}}, "zh-Hans" : {"stringUnit" : {"state" : "translated", "value" : "上边缘"}}, "zh-Hant" : {"stringUnit" : {"state" : "translated", "value" : "上邊緣"}}}
+    },
+    "Near the bottom edge" : {
+      "localizations" : {"ja" : {"stringUnit" : {"state" : "translated", "value" : "下端"}}, "zh-Hans" : {"stringUnit" : {"state" : "translated", "value" : "下边缘"}}, "zh-Hant" : {"stringUnit" : {"state" : "translated", "value" : "下邊緣"}}}
+    },
+    "Never" : {
+      "localizations" : {"ja" : {"stringUnit" : {"state" : "translated", "value" : "しない"}}, "zh-Hans" : {"stringUnit" : {"state" : "translated", "value" : "永不"}}, "zh-Hant" : {"stringUnit" : {"state" : "translated", "value" : "永不"}}}
     }
   },
   "version" : "1.0"
