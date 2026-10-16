@@ -52,4 +52,6 @@ WallpaperMachine to be running.
 
 `npm test` in the folder runs the patcher tests. The *VS Code extension*
 workflow (`.github/workflows/vscode-extension.yml`) runs them and packages
-`ascii-ripples-<version>.vsix` as an artifact.
+`ascii-ripples-<version>.vsix` as an artifact. Pushing a tag
+`ascii-ripples-<version>` (matching `package.json`) also publishes it as a GitHub
+release; never a `v*` tag, which cuts an app release.
