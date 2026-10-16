@@ -44,7 +44,7 @@ function connect(port, origin, ms = 600) {
 test("relays helper lines to VS Code windows and ignores other origins", async () => {
   const port = await freePort();
   // The fixture is a node script; it speaks after the clients below are in.
-  const relay = new TouchRelay({ port, helperPath: process.execPath, helperArgs: ["-e", `setTimeout(() => require(${JSON.stringify(FAKE_HELPER)}), 300)`] });
+  const relay = new TouchRelay({ port, helperPath: process.execPath, helperArgs: [FAKE_HELPER] });
   relay.start();
   await new Promise(r => setTimeout(r, 100));
   const [win, web] = await Promise.all([connect(port, "vscode-file://vscode-app"), connect(port, "https://example.com")]);
