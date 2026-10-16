@@ -1,0 +1,41 @@
+# Builds an ad-hoc signed disk image on demand, for a fork that has no release
+# signing certificate. Actions → Fork DMG → Run workflow; the image is attached to
+# the run as the "WallpaperMachine-dmg" artifact. The whole build runs on macOS 26,
+# so the bundled Homebrew libraries need macOS 26 or later.
+name: Fork DMG
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dmg:
+    runs-on: macos-26
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/prepare-build
+
+      - name: Build
+        run: |
+          set -euo pipefail
+          xcodebuild -version
+          python3 scripts/build.py --configuration Release
+
+      - name: Package
+        run: |
+          set -euo pipefail
+          python3 scripts/package.py --configuration Release
+          find . -name 'WallpaperMachine-*.dmg' -not -path './.git/*'
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WallpaperMachine-dmg
+          path: |
+            **/WallpaperMachine-*.dmg
+            **/WallpaperMachine-*.dmg.sha256
+          if-no-files-found: error
+          retention-days: 14
